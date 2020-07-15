@@ -1,0 +1,23 @@
+{
+  "name": "basic-games",
+  "version": "0.0.1",
+  "description": "Basic Express and Vue.js project",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sergey-dev-42-1/basic-games.git"
+  },
+  "author": "Sergey Ryzhikh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sergey-dev-42-1/basic-games/issues"
+  },
+  "homepage": "https://github.com/Sergey-dev-42-1/basic-games#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.4"
+  }
+}
