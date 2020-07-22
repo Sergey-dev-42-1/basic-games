@@ -1,36 +1,38 @@
+//Библиотеки и модули
 const express = require ("express")
-const db = require("./db").db
 const pass_encryption = require("bcrypt")
-const port = process.env.port 
-//Parsing form data
+const cors = require('cors')
+//Мои модули и объекты
+const DB = require("./db").db
+const DB_obj = new DB(100)//Аргумент - максимальное количество соединений
+const User = require('./models/models').User
+//Парсеры
+//Парсер Form
 const multer = require("multer")
 const upload = multer()
+//Парсер JSON
+const bodyParser = require('body-parser')
 
 const app = express()
+//Присоединение библиотек
 app.use(upload.array())
+app.use(cors())
+app.use(bodyParser.json());
+//Переменные среды
+const port = process.env.port 
 
-app.get('/postreg', (req,res) =>{
-    if(req.statusCode == 200){
-        res.send('Вы успешно зарегистрированы')
-    }
-    else{
-        res.send("Проблемы с регистрацией, попробуйте позже")
-    }
-})
 
-//PotTODO переработать так, чтобы доставать все возможные поля из запроса автоматически
-app.post('/register' , (req,res) => {
-   let salt_rounds = 10; //Количество раундов хеширования
-   pass_encryption.hash(req.body.password, salt_rounds, (err,encrypted) =>{
-    db.query(`INSERT INTO basic_games.users (username, password, rating, email) 
-    VALUES ('${req.body.username}','${encrypted}', 0 ,'${req.body.email}')` 
-        , (err) => {
-            if (err) throw err;
-            console.log(`User ${req.body.email} was added to DB`)
-            })
-            res.redirect(200,'/postreg')
+//Обработчики запросов
+app.post('/api/register' , (req,res) => {
+    //10 - количество раундов хеширования
+   pass_encryption.hash(req.body.password, 10, (err,encrypted) =>{
+    if (err){ res.send(err);
+              throw err};
+    attemptResult = (DB_obj.registerUser(new User(req.body.username,req.body.email,encrypted)))
+    res.send(attemptResult) 
    });
   
 })
 
-app.listen(port || 8080)
+
+app.listen(port || 8081)
