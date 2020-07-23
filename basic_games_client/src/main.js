@@ -2,14 +2,15 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import app from './App'
-import registration from './components/Registration'
-//import api_router from './router/router'
+import api_router from './router/router'
 
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
+  router: api_router,
+  components: {app},
   render: h => h(app),
-  components: {app,registration}
-}).$mount()
+  template : '<App/>'
+}).$mount(app)

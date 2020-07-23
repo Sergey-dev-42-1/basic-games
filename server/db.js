@@ -26,9 +26,11 @@ class DB{
         if(err) throw err
         if (results.length > 0){
           resolve(true)
+          return true
         } 
         else{
           resolve(false)
+          return true
         }
       })
     })
@@ -44,6 +46,7 @@ class DB{
         if(err) throw err
         if (results.length > 0){
           resolve(true)
+          
         } 
         else{
           resolve(false)
@@ -52,17 +55,28 @@ class DB{
     
   }
   
-  updateRating(username, value){
+   updateRating(username, value = 1){
     let sql = 'UPDATE basic_games.users'
-    +' SET users.rating = users.rating'
+    +' SET users.rating = users.rating + ?'
     +' WHERE users.username = ?'
-    this.db.query(sql
-      ,[User.username,User.password,User.email], (err) => {
-          if (err) throw err;
-          console.log(`User ${User.email} was added to DB`)
-          
-          })
-    ;
+
+    let uniqUsernameCheck = this.checkUsernameUniqueness(username)
+    return uniqUsernameCheck.then((result) => {
+      return new Promise((resolve) => {
+      if (result){
+        this.db.query(sql
+          ,[value, username ], (err) => {
+              if (err) throw err;
+              console.log(`User ${username} rating was updated`)
+              resolve ({status: 200, msg: `User ${username} rating was updated`})
+              })
+      }
+      else{
+        resolve ( {status: 400, msg: `User ${username} was not found`})
+      }
+    })
+    })
+    
   }
   fetchAllUsers(){
       

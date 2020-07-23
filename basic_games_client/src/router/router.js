@@ -1,15 +1,14 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import registration from '@/components/Registration'
-import app from '@/App'
-
+import registration from '@/views/Registration'
+import about from '@/views/About'
 
 Vue.use(Router)
 
 export default new Router({
   routes: [
-    {path : '/', component: app},
-    {path : '/register', component: registration}
+    {path : '/about', name: 'About', component: about},
+    {path : '/register', name: 'Register', component: registration}
   ]
 })
 

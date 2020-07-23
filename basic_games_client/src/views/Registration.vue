@@ -26,7 +26,7 @@ export default {
         email: this.email,
         password: this.password
       })
-      document.append(`<h1>${res.data}<h1>`)
+      document.body.append(`<p>${res}</p>`)
     }
   }
 }

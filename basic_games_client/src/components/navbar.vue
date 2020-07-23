@@ -4,21 +4,19 @@
 <body>
     <div id ='app'>
       <h1>Basic_games</h1>
-    <navbar></navbar>
+    <router-link to="/about">About|</router-link>
+    <router-link to="/register">Register</router-link>
     </div>
-    <router-view></router-view>
 </body>
 </html>
 </template>
 
 <script>
-import navbar from './components/navbar'
 export default {
-  name: 'app',
-  components : {navbar}
+  name: 'navbar',
 }
 </script>
 
-<style>
+<style scoped>
 
 </style>
