@@ -28,8 +28,9 @@ app.post('/api/register' , (req,res) => {
    pass_encryption.hash(req.body.password, 10, (err,encrypted) =>{
     if (err){ res.send(err);
               throw err};
-    attemptResult = (DB_obj.registerUser(new User(req.body.username,req.body.email,encrypted)))
-    res.send(attemptResult) 
+              
+    DB_obj.registerUser(new User(req.body.username,req.body.email,encrypted))
+    .then(((attempt) =>{console.log(attempt); res.send(attempt) }))
    });
   
 })
