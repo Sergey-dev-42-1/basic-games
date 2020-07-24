@@ -1,24 +1,21 @@
 <template>
-<html>
-<head title="Basic-games"></head>
-<body>
-    <div id ='app'>
-      <h1>Basic_games</h1>
-    <navbar></navbar>
-    </div>
-    <router-view></router-view>
-</body>
-</html>
+  <v-app>
+    <v-content>
+      <router-view></router-view>
+    </v-content>
+  </v-app>
 </template>
 
 <script>
-import navbar from './components/navbar'
+
 export default {
-  name: 'app',
-  components : {navbar}
-}
+  name: 'App',
+
+  components: {
+  },
+
+  data: () => ({
+    //
+  }),
+};
 </script>
-
-<style>
-
-</style>
