@@ -40,7 +40,7 @@ app.post('/api/register' , (req,res) => {
 app.patch('/api/rating' , (req,res) => {
     //10 - количество раундов хеширования
     DB_obj.updateRating(req.body.username, req.body.changeValue)
-    .then((attempt) =>{console.log(attempt); res.send(attempt) })
+    .then((attempt) =>{console.log(attempt); res.send(JSON.stringify(attempt)) })
    });
 
 app.listen(port || 8081)
