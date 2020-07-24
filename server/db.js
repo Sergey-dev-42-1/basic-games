@@ -84,7 +84,8 @@ class DB{
   loginUser(credentials,encrypted_password){
       
   }
-  async registerUser(User){
+
+   registerUser(User){
     let sql = `INSERT INTO basic_games.users (username, password, rating, email) 
                       VALUES (?,?, 0 ,?)` 
 

@@ -7,21 +7,13 @@
     >
    
     <v-text-field
-      v-model="email"
+      v-model="identificator"
       :counter="40"
-      :rules="emailRules"
-      label="Email"
+      :rules="mixedRules"
+      label="Email or username"
       required
     ></v-text-field>
 
-    <v-text-field
-        v-model="username"
-        :counter="20"
-        :rules="nameRules"
-        label="Username"
-        required
-      ></v-text-field>
-    
     <v-text-field
       type = 'password'
       v-model="password"
@@ -29,7 +21,7 @@
       label="Password"
       required
     ></v-text-field>
-    
+
     <v-alert 
     transition="slide-y-transition"
      :type="al_type" id="register_alert"
@@ -37,8 +29,8 @@
     </v-alert>
 
     <v-btn block :disabled="!valid"
-     v-on:click="register()">
-     Register
+     v-on:click="login()">
+     Log in
      </v-btn>
     </v-form>
   </v-row>
@@ -47,35 +39,29 @@
 <script>
 import registrationService from '../services/registrationService'
 export default {
-  name: 'registration',
+  name: 'login',
   data () {
     return {
+
       alert: false,
       al_type: '',
+
       valid: true,
-      username: '',
-      nameRules: [
+      identificator: '',
+      identificatorRules: [
         v => !!v || 'Name is required',
-        v => (v && v.length <= 10) || 'Name must be less than 10 characters',
-      ],
-      email: '',
-       emailRules: [
-        v => !!v || 'Email is required',
-        v =>  /.+@.+\..{3}/.test(v) || 'This doesn\'t look right...'
       ],
       password: '',
       passwordRules: [
         v => !!v || 'Password is required',
-        v => (v && v.length >= 6) || 'Password must be 6 characters or longer',
       ],
     }
   },
   methods: {
-    register () {
+    login () {
       let res = new Promise((resolve) => {
-          let response =  registrationService.register({
-          username: this.username,
-          email: this.email,
+          let response =  registrationService.login({
+          indetificator: this.username,
           password: this.password
         })
         resolve(response)
@@ -88,16 +74,16 @@ export default {
        this.al_type = 'error'
        temp_alert.innerHTML = `<p>${response.data.msg}<p>`
        this.alert = true
-       window.setInterval(()=>{this.alert = false}, 3000)
+       window.setInterval(()=>{this.alert = false}, 2000)
       }
       else{
        this.al_type = 'success'
        temp_alert.innerText = response.data.msg
        this.alert = true
-        window.setInterval(()=>{this.alert = false}, 3000)
+        window.setInterval(()=>{this.alert = false}, 2000)
       }
       })
-      //TODO redirect to index after logging in
+      
     }
   }
 }
