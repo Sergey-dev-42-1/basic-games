@@ -12,6 +12,7 @@ const multer = require("multer")
 const upload = multer()
 //Парсер JSON
 const bodyParser = require('body-parser')
+const { response } = require("express")
 
 const app = express()
 //Присоединение библиотек
@@ -25,22 +26,26 @@ const port = process.env.port
 //Обработчики запросов
 /*Регистрация пользователя(тело должно содержать пароль, email и имя пользователя)
   Имя и email уникальны */
-app.post('/api/register' , (req,res) => {
+app.post('/api/register' , async (req,res) => {
     //10 - количество раундов хеширования
-   pass_encryption.hash(req.body.password, 10, (err,encrypted) =>{
-    if (err){ res.send(err);
-              throw err};
+  let hash = await pass_encryption.hash(req.body.password, 10, (err) =>{
+  if (err){throw err}})
+  let response = await DB_obj.registerUser(new User(req.body.username,req.body.email,hash))
+  res.send(response)
+});
 
-    DB_obj.registerUser(new User(req.body.username,req.body.email,encrypted))
-    .then(((attempt) =>{console.log(attempt); res.send(attempt) }))
-   });
-  
-})
+app.post('/api/login' , async (req,res) => {
+  let hash = await pass_encryption.hash(req.body.password, 10, (err) =>{
+    if (err){throw err}})
+    let response = await DB_obj.registerUser(new User(req.body.username,req.body.email,hash))
+    res.send(response)
+  });
+
 // Изменение рейтинга пользователя, нужно его имя и значение изменения(1 по умолчанию)
-app.patch('/api/rating' , (req,res) => {
+app.patch('/api/rating' , async (req,res) => {
     //10 - количество раундов хеширования
-    DB_obj.updateRating(req.body.username, req.body.changeValue)
-    .then((attempt) =>{console.log(attempt); res.send(JSON.stringify(attempt)) })
+    let response = await DB_obj.updateRating(req.body.username, req.body.changeValue)
+    res.send(response);
    });
 
 app.listen(port || 8081)

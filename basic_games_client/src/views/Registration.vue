@@ -71,36 +71,31 @@ export default {
     }
   },
   methods: {
-    register () {
-      let res = new Promise((resolve) => {
-          let response =  registrationService.register({
+    async  register () {
+      let res = await registrationService.register({
           username: this.username,
           email: this.email,
           password: this.password
-        })
-        resolve(response)
       })
-      
-      res.then((response) => {
       let temp_alert = document.getElementById('register_alert');
       
-      if(response.data.status != 200){
+      if(res.data.status != 200){
        this.al_type = 'error'
-       temp_alert.innerHTML = `<p>${response.data.msg}<p>`
+       temp_alert.innerHTML = `<p>${res.data.msg}<p>`
        this.alert = true
        window.setInterval(()=>{this.alert = false}, 3000)
       }
       else{
        this.al_type = 'success'
-       temp_alert.innerText = response.data.msg
+       temp_alert.innerText = res.data.msg
        this.alert = true
         window.setInterval(()=>{this.alert = false}, 3000)
       }
-      })
+      }
       //TODO redirect to index after logging in
     }
-  }
 }
+
 
 </script>
 
