@@ -71,7 +71,7 @@ export default {
     }
   },
   methods: {
-    async  register () {
+    async register () {
       let res = await registrationService.register({
           username: this.username,
           email: this.email,
@@ -83,13 +83,13 @@ export default {
        this.al_type = 'error'
        temp_alert.innerHTML = `<p>${res.data.msg}<p>`
        this.alert = true
-       window.setInterval(()=>{this.alert = false}, 3000)
+       window.setTimeout(()=>{this.alert = false}, 3000)
       }
       else{
        this.al_type = 'success'
        temp_alert.innerText = res.data.msg
        this.alert = true
-        window.setInterval(()=>{this.alert = false}, 3000)
+        window.setTimeout(()=>{this.alert = false}, 3000)
       }
       }
       //TODO redirect to index after logging in

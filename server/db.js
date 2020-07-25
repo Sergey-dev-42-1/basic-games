@@ -1,6 +1,7 @@
 // код доступа к базе данных
-
+//TODO Придумать другое архитектурное решение для хранения методов, хранить все методы к бд в одном месте не оч
 const mysql = require('mysql');
+const User = require('./models/models').User
 
 class DB{
   constructor(connectionLimit){
@@ -35,6 +36,7 @@ class DB{
       })
     })
   }
+
   //Возвращает промис который ресолвится в true если находит записи с тем же email
   checkEmailUniqueness(email){
     return new Promise((resolve) => {
@@ -55,6 +57,32 @@ class DB{
     
   }
   
+  fetchUser(identificator){
+
+    let sql = 'SELECT *'
+    +' FROM basic_games.users'
+    +' WHERE username = ?;'
+    if (/.+@.+\..{3}/.test(identificator)){
+        sql = 'SELECT *'
+          +' FROM basic_games.users'
+          +' WHERE email = ? ;'
+    }
+    return new Promise((resolve) => {
+        this.db.query(sql,[identificator], 
+        (err,results,fields) => {
+          console.log(results)
+        if(err) throw err
+        if (results.length > 0){
+          
+          resolve(new User(results[0].username, results[0].email, results[0].password))
+        } 
+        else{
+          resolve(false)
+        }
+      })
+    })
+}
+
    updateRating(username, value = 1){
     let sql = 'UPDATE basic_games.users'
     +' SET users.rating = users.rating + ?'
@@ -72,17 +100,11 @@ class DB{
               })
       }
       else{
-        resolve ( {status: 400, msg: `User ${username} was not found`})
+        resolve ( {msg: `User ${username} was not found`})
       }
     })
     })
     
-  }
-  fetchAllUsers(){
-      
-  }
-  loginUser(credentials,encrypted_password){
-      
   }
 
    registerUser(User){

@@ -9,7 +9,7 @@
     <v-text-field
       v-model="identificator"
       :counter="40"
-      :rules="mixedRules"
+      :rules="identificatorRules"
       label="Email or username"
       required
     ></v-text-field>
@@ -24,7 +24,8 @@
 
     <v-alert 
     transition="slide-y-transition"
-     :type="al_type" id="register_alert"
+     :type="al_type"
+      id="register_alert"
       v-model="alert" >
     </v-alert>
 
@@ -58,34 +59,29 @@ export default {
     }
   },
   methods: {
-    login () {
-      let res = new Promise((resolve) => {
-          let response =  registrationService.login({
-          indetificator: this.username,
+    async login () {
+      let res = await registrationService.login({
+          identificator: this.identificator,
           password: this.password
-        })
-        resolve(response)
       })
-      
-      res.then((response) => {
       let temp_alert = document.getElementById('register_alert');
       
-      if(response.data.status != 200){
+      if(res.status != 200){
        this.al_type = 'error'
-       temp_alert.innerHTML = `<p>${response.data.msg}<p>`
+       temp_alert.innerText = res.data.msg
        this.alert = true
-       window.setInterval(()=>{this.alert = false}, 2000)
+       window.setTimeout(()=>{this.alert = false}, 3000)
       }
       else{
-       this.al_type = 'success'
-       temp_alert.innerText = response.data.msg
-       this.alert = true
-        window.setInterval(()=>{this.alert = false}, 2000)
+        this.al_type = 'success'
+        temp_alert.innerText = res.data.msg + ", you will be redirected to shortly"
+        this.alert = true
+        window.setTimeout(()=>{this.alert = false; }, 3000)
+        setTimeout(()=>{this.$router.push('/')},4000)
       }
-      })
-      
+      }
+      //TODO redirect to index after logging in
     }
-  }
 }
 
 </script>
