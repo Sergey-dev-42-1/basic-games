@@ -18,15 +18,14 @@ class AuthMethods extends DB{
                 return true
     }
     removeToken(token){
-        console.log(`Refresh token have been successfully removed`)
-        // let sql = 'DELETE FROM basic_games.tokens'
-        //           +  ' WHERE refresh_token = ?'
-        // this.db.query(sql
-        //     ,[token], (err) => {
-        //         if (err) throw err;
-        //         console.log(`Refresh token have been successfully removed`)
-        //         })
-        //         return true
+        let sql = 'DELETE FROM basic_games.tokens'
+                  +  ' WHERE refresh_token = ?'
+        this.db.query(sql
+            ,[token], (err) => {
+                if (err) throw err;
+                console.log(`Refresh token have been successfully removed`)
+                })
+                return true
     }
     checkRefreshTokenExistence(token){
         let sql = 'SELECT  refresh_token, expiration_date FROM basic_games.tokens'

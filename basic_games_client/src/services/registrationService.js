@@ -7,4 +7,7 @@ export default {
   login (credentials) {
     return Auth_Api().post('/login', credentials)
   },
+  logout (refreshToken) {
+    return Auth_Api().delete('/logout', refreshToken)
+  },
 }

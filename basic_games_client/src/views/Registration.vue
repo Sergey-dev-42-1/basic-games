@@ -72,28 +72,41 @@ export default {
   },
   methods: {
     async register () {
-      let res = await registrationService.register({
+      let res = ''
+      let temp_alert = document.getElementById('register_alert');
+      try{
+      res = await registrationService.register({
           username: this.username,
           email: this.email,
           password: this.password
       })
-      let temp_alert = document.getElementById('register_alert');
-      
-      if(res.data.status != 200){
-       this.al_type = 'error'
-       temp_alert.innerHTML = `<p>${res.data.msg}<p>`
-       this.alert = true
-       window.setTimeout(()=>{this.alert = false}, 3000)
       }
-      else{
-       this.al_type = 'success'
-       temp_alert.innerText = res.data.msg
-       this.alert = true
+      catch(err){
+        console.log(err)
+        this.al_type = 'error'
+        temp_alert.innerText = err.response.data
+        this.alert = true
         window.setTimeout(()=>{this.alert = false}, 3000)
+        return
       }
-      }
-      //TODO redirect to index after logging in
+      
+      let login_res = await registrationService.login({identificator: this.username, password:  this.password})
+
+      
+      this.al_type = 'success'
+      temp_alert.innerText = res.data.msg +`  ${login_res.msg ?'\n'+ login_res.msg : ''}`
+      this.alert = true
+      window.setTimeout(()=>{this.alert = false}, 3000)
+      setTimeout(() => {
+        this.$store.dispatch('login',{
+        user: login_res.data.user,
+        refreshToken: login_res.data.refreshToken,
+        accsessToken: login_res.data.accessToken
+         })
+        this.$router.push('/')
+      }, 3000); 
     }
+  }
 }
 
 

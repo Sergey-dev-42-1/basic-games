@@ -25,17 +25,11 @@ Vue.use(VueRouter)
     path: '/register',
     name: 'Register',
     component: Register,
-    meta: {
-      guest: true
-    }
   },
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: {
-      guest: true
-    }
   },
   {
     path: '/*',

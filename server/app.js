@@ -31,8 +31,13 @@ const port = process.env.port
   Имя и email уникальны */
 app.post('/api/user/register' , async (req,res) => {
     //10 - количество раундов хеширования
-  let hash = await bcrypt.hash(req.body.password, 10, (err) =>{
-  if (err){throw err}})
+  hash = ''
+  try{
+  hash = await bcrypt.hash(req.body.password, 10)
+  }
+  catch(err){
+    res.status(400).send(err.data)
+  }
   let response = await DB_obj.registerUser(new User(req.body.username,req.body.email,hash))
   res.status(200).send(response)
 });

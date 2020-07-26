@@ -45,25 +45,35 @@ app.post('/token' , async (req,res) => {
     }
   );
 
-  app.delete('/logout', (req,res) => {
-    auth_db_obj.removeToken(req.body.refreshToken)
+  app.delete('/logout',async (req,res) => {
+    await auth_db_obj.removeToken(req.body.refreshToken)
+    res.status(200).send({msg:'Successfully logged out'})
   })
 
 app.post('/login' , async (req,res) => {
     let user = await DB_obj.fetchUser(req.body.identificator)
-    console.log(user)
-    if(!user){
-      return res.status(400).send({msg: 'No such user found'})
+    if(user === false){
+      return res.status(400).send('No such user found')
     }
-    if(bcrypt.compare(req.body.password,user.password)){
+    let passComparison = false
+    try{
+      passComparison = await bcrypt.compare(req.body.password,user.password)
+      console.log(passComparison)
+    }
+    catch(err){
+     return res.status(400).send('Password comparison failed')
+    }
+    if(passComparison){
+
     let refreshToken = jwt.sign({username :user.username}, process.env.REFRESH_SECRET_KEY, {expiresIn: '1d'})
     let accessToken = generateAccessToken({username: user.username})
     auth_db_obj.saveToken(refreshToken)
 
     return res.status(200).send({msg: `Successfully logged in!`, user: user, refereshToken : refreshToken, accessToken : accessToken})
     }
+    
     else{
-        res.status(401).send({msg: 'Wrong password!'})
+        res.status(401).send('Wrong password!')
     }
     });
 

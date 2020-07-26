@@ -25,7 +25,7 @@
     <v-alert 
     transition="slide-y-transition"
      :type="al_type"
-      id="register_alert"
+      id="login_alert"
       v-model="alert" >
     </v-alert>
 
@@ -60,27 +60,37 @@ export default {
   },
   methods: {
     async login () {
-      let res = await registrationService.login({
+      let login_res = ''
+      let temp_alert = document.getElementById('login_alert');
+      try{
+      login_res = await registrationService.login({
           identificator: this.identificator,
           password: this.password
       })
-      let temp_alert = document.getElementById('register_alert');
-      
-      if(res.status != 200){
-       this.al_type = 'error'
-       temp_alert.innerText = res.data.msg
-       this.alert = true
-       window.setTimeout(()=>{this.alert = false}, 3000)
       }
-      else{
-        this.al_type = 'success'
-        temp_alert.innerText = res.data.msg + ", you will be redirected to shortly"
+      catch(err){
+        console.log(err)
+        this.al_type = 'error'
+        temp_alert.innerText = err.response.data
         this.alert = true
-        window.setTimeout(()=>{this.alert = false; }, 3000)
-        setTimeout(()=>{this.$router.push('/')},4000)
+        window.setTimeout(()=>{this.alert = false}, 3000)
+        return
       }
-      }
-      //TODO redirect to index after logging in
+      console.log(login_res)
+      
+
+      this.al_type = 'success'
+      temp_alert.innerText = login_res.data.msg
+      this.alert = true
+      window.setTimeout(()=>{this.alert = false; }, 3000)
+      setTimeout(()=>{
+        this.$store.dispatch('login',{
+        user: login_res.data.user,
+        refreshToken: login_res.data.refreshToken,
+        accsessToken: login_res.data.accessToken
+         })
+        this.$router.push('/')},3000)
+    }
     }
 }
 
