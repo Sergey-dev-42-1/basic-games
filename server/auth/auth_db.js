@@ -8,28 +8,42 @@ class AuthMethods extends DB{
     }
     saveToken(token){
         let sql = `INSERT INTO basic_games.tokens
-        (token) 
-        VALUES (?)`
+        (refresh_token,expiration_date) 
+        VALUES (?,?)`
         this.db.query(sql
-            ,[token], (err) => {
+            ,[token, Date.now()+(1000*60*60*24)], (err) => {
                 if (err) throw err;
                 console.log(`New refresh token saved`)
                 })
                 return true
     }
-    checkTokenExistence(token){
-        let sql = `SELECT FROM basic_games.tokens token 
-        WHERE token = ?`
-        this.db.query(sql
+    removeToken(token){
+        console.log(`Refresh token have been successfully removed`)
+        // let sql = 'DELETE FROM basic_games.tokens'
+        //           +  ' WHERE refresh_token = ?'
+        // this.db.query(sql
+        //     ,[token], (err) => {
+        //         if (err) throw err;
+        //         console.log(`Refresh token have been successfully removed`)
+        //         })
+        //         return true
+    }
+    checkRefreshTokenExistence(token){
+        let sql = 'SELECT  refresh_token, expiration_date FROM basic_games.tokens'
+                   + ' WHERE refresh_token = ?;'
+        return new Promise((resolve) => {
+            this.db.query(sql
             ,[token], (err, result) => {
-                if (err) throw err;
-                })
-                if(result.length > 0){
-                    return true
+                if (err) {throw err};
+                if(result[0].expiration_date > Date.now()){
+                    resolve(true)
                 }
-                else{
-                    return false
+                else {
+                     this.removeToken(token)
+                     resolve(true)
                 }
+            })
+        })
     }
 }
 module.exports.AuthDB = AuthMethods

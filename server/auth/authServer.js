@@ -29,16 +29,25 @@ function generateAccessToken(user){
     return jwt.sign(user, process.env.ACCESS_SECRET_KEY, {expiresIn: '10m'})
 }
 
-app.get('/token' , async (req,res) => {
+app.post('/token' , async (req,res) => {
     const authHeader = req.headers['authorization']
     const refresh_token = authHeader && authHeader.split(' ')[1]
-    if (refresh_token === null){res.sendStatus(401)
-    jwt.verify(refresh_token, process.env.ACCESS_SECRET_KEY, (err, user) => {
-      if (err) return res.sendStatus(403)
+
+    if (refresh_token === null){ return res.sendStatus(401)}
+    if (await !auth_db_obj.checkRefreshTokenExistence(refresh_token)){return res.sendStatus(401)}
+
+    jwt.verify(refresh_token, process.env.REFRESH_SECRET_KEY, (err, user) => {
+      console.log(user)
+      if (err) {return res.sendStatus(403)}
+      const accessToken = generateAccessToken({ name: user.username})
+      res.status(200).send({accessToken : accessToken})
     })
     }
-  });
+  );
 
+  app.delete('/logout', (req,res) => {
+    auth_db_obj.removeToken(req.body.refreshToken)
+  })
 
 app.post('/login' , async (req,res) => {
     let user = await DB_obj.fetchUser(req.body.identificator)
@@ -47,12 +56,11 @@ app.post('/login' , async (req,res) => {
       return res.status(400).send({msg: 'No such user found'})
     }
     if(bcrypt.compare(req.body.password,user.password)){
-  
-    let refreshToken = jwt.sign({username :user.username}, process.env.REFRESH_SECRET_KEY)
-
+    let refreshToken = jwt.sign({username :user.username}, process.env.REFRESH_SECRET_KEY, {expiresIn: '1d'})
+    let accessToken = generateAccessToken({username: user.username})
     auth_db_obj.saveToken(refreshToken)
 
-    return res.status(200).send({msg: `User ${user.username} logged in`, refereshToken : refreshToken})
+    return res.status(200).send({msg: `Successfully logged in!`, user: user, refereshToken : refreshToken, accessToken : accessToken})
     }
     else{
         res.status(401).send({msg: 'Wrong password!'})
