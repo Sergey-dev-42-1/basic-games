@@ -26,7 +26,7 @@ app.use(cors())
 app.use(bodyParser.json());
 
 function generateAccessToken(user){
-    return jwt.sign(user, process.env.ACCESS_SECRET_KEY, {expiresIn: 10})
+    return jwt.sign(user, process.env.ACCESS_SECRET_KEY, {expiresIn: '30m'})
 }
 
 app.get('/token' , async (req,res) => {

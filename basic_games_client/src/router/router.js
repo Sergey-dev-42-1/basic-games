@@ -52,9 +52,10 @@ Vue.use(VueRouter)
     name: 'Rooms',
     component: Rooms,
     async beforeEnter(to, from, next){
+      console.log('Dispatched check')
       let auth = await store.dispatch('authorize')
       if(auth){
-        next('/rooms')
+        next()
       }
       else{
         next('/401')
