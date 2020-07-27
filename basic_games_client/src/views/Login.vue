@@ -83,11 +83,11 @@ export default {
       temp_alert.innerText = login_res.data.msg
       this.alert = true
       window.setTimeout(()=>{this.alert = false; }, 3000)
-      setTimeout(()=>{
-        this.$store.dispatch('login',{
+      setTimeout(async ()=>{
+        await this.$store.dispatch('login',{
         user: login_res.data.user,
         refreshToken: login_res.data.refreshToken,
-        accsessToken: login_res.data.accessToken
+        accessToken: login_res.data.accessToken
          })
         this.$router.push('/')},3000)
     }

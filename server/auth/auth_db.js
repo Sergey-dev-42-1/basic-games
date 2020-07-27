@@ -13,7 +13,6 @@ class AuthMethods extends DB{
         this.db.query(sql
             ,[token, Date.now()+(1000*60*60*24)], (err) => {
                 if (err) throw err;
-                console.log(`New refresh token saved`)
                 })
                 return true
     }

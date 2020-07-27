@@ -4,7 +4,9 @@ import Home from '../views/Home.vue'
 import Register from '../views/Registration.vue'
 import Login from '../views/Login.vue'
 import NotFound from '../views/NotFound.vue'
-
+import Unauthorized from '../views/Unauthorized'
+import Rooms from '../views/Rooms'
+import store from '../store/index'
 Vue.use(VueRouter)
 
   const routes = [
@@ -25,11 +27,51 @@ Vue.use(VueRouter)
     path: '/register',
     name: 'Register',
     component: Register,
+    beforeEnter(to, from, next){
+      if(localStorage.getItem('refreshToken'))
+      {
+        next('/')
+      }
+      else{next()}
+    }
   },
   {
     path: '/login',
     name: 'Login',
     component: Login,
+    beforeEnter(to, from, next){
+      if(localStorage.getItem('refreshToken'))
+      {
+        next('/')
+      }
+      else{next()}
+    }
+  },
+  {
+    path: '/rooms',
+    name: 'Rooms',
+    component: Rooms,
+    async beforeEnter(to, from, next){
+      let auth = await store.dispatch('authorize')
+      if(auth){
+        next('/rooms')
+      }
+      else{
+        next('/401')
+      }
+    }
+  },
+  {
+    path: '/401',
+    name: '401',
+    component: Unauthorized,
+    beforeEnter(to, from, next){
+      if(localStorage.getItem('refreshToken'))
+      {
+        next()
+      }
+      else{next('/login')}
+    }
   },
   {
     path: '/*',

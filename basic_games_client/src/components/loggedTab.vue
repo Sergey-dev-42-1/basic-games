@@ -5,20 +5,23 @@
 <v-menu>
     <template v-slot:activator="{ on }">
     <v-btn
+        block
         color="indigo"
         dark
         v-on="on"
     >
-    {{loggedIn}}
+    {{username}}
     </v-btn>
     </template>
 
         <v-list>
-    <v-list-tile
+    <v-list-item 
+         
+        align=center
         @click="logout"
     >
     Logout
-    </v-list-tile>
+    </v-list-item>
     </v-list>
 
 </v-menu>
@@ -36,8 +39,8 @@ export default {
       }
   },
   computed: {
-    loggedIn: function() {
-      return this.$store.state.user.username
+    username() {
+        return this.$store.state.user.username
     }
   },
   methods: {
@@ -46,7 +49,6 @@ export default {
         if ( /2\d{2}$/.test(logout_res.status)){
             this.$store.dispatch('logout')
         }
-        this.$forceUpdate()
       }
   }
 }

@@ -74,7 +74,7 @@ class DB{
         if(err) throw err
         if (results.length > 0){
           
-          resolve(new User(results[0].username, results[0].email, results[0].password))
+          resolve(new User(results[0].username, results[0].email, results[0].password,results[0].rating))
         } 
         else{
           resolve(false)

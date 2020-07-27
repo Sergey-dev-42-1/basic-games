@@ -9,9 +9,7 @@
         </v-toolbar-title>
         <v-spacer></v-spacer>
     <v-toolbar-items>
-      <!-- TODO Remove it if user logged in -->
     <v-btn v-if="!loggedIn" to="/register">Register</v-btn>
-    <!-- TODO Change it to log out if user logged in -->
     <v-btn v-if="!loggedIn" to="/login" class="">Sign In</v-btn>
     <v-btn to="/about">About</v-btn>
     <loggedTab v-if="loggedIn"></loggedTab>
@@ -27,11 +25,17 @@ import loggedTab from '@/components/loggedTab'
 export default {
   name: 'navbar',
   components: {loggedTab},
-  computed: {
-    loggedIn: function() {
-      return this.$store.state.user.username !== undefined
+  computed:{
+    loggedIn: function(){
+      return !!this.$store.state.user
     }
-  }
+  },
+  async beforeUpdate() { 
+      let res = await this.$store.dispatch('authorize')
+      if(res){
+        return this.$store.state.user
+      }
+    },
 }
 </script>
 

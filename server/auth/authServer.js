@@ -26,21 +26,44 @@ app.use(cors())
 app.use(bodyParser.json());
 
 function generateAccessToken(user){
-    return jwt.sign(user, process.env.ACCESS_SECRET_KEY, {expiresIn: '10m'})
+    return jwt.sign(user, process.env.ACCESS_SECRET_KEY, {expiresIn: 10})
 }
 
-app.post('/token' , async (req,res) => {
-    const authHeader = req.headers['authorization']
-    const refresh_token = authHeader && authHeader.split(' ')[1]
+app.get('/token' , async (req,res) => {
+    
+    const refresh_token = req.headers['authorization']
+    console.log(refresh_token)
+    if (refresh_token === undefined){ 
+      return res.sendStatus(400).end('No refresh token sent')
+    }
 
-    if (refresh_token === null){ return res.sendStatus(401)}
-    if (await !auth_db_obj.checkRefreshTokenExistence(refresh_token)){return res.sendStatus(401)}
+    if (await !auth_db_obj.checkRefreshTokenExistence(refresh_token)){
+      return res.sendStatus(401).end('False Refresh token')
+    }
 
     jwt.verify(refresh_token, process.env.REFRESH_SECRET_KEY, (err, user) => {
-      console.log(user)
-      if (err) {return res.sendStatus(403)}
+      if (err) 
+      {
+        return res.sendStatus(403).end('Token verification failed')
+      }
       const accessToken = generateAccessToken({ name: user.username})
       res.status(200).send({accessToken : accessToken})
+    })
+    }
+  );
+
+  app.get('/auth' , async (req,res) => {
+    const access_token = req.headers['authorization']
+    console.log("Authorizing")
+    console.log(access_token)
+    if (access_token === undefined) { 
+      return res.sendStatus(401).send('No access token sent')
+    }
+    jwt.verify(access_token, process.env.ACCESS_SECRET_KEY, (err, user) => {
+      if (err) {
+        return res.sendStatus(403).end('Token expired')
+      }
+      res.status(200).send("Authorized")
     })
     }
   );
@@ -66,10 +89,16 @@ app.post('/login' , async (req,res) => {
     if(passComparison){
 
     let refreshToken = jwt.sign({username :user.username}, process.env.REFRESH_SECRET_KEY, {expiresIn: '1d'})
-    let accessToken = generateAccessToken({username: user.username})
-    auth_db_obj.saveToken(refreshToken)
 
-    return res.status(200).send({msg: `Successfully logged in!`, user: user, refereshToken : refreshToken, accessToken : accessToken})
+    let accessToken = generateAccessToken({username: user.username})
+
+    auth_db_obj.saveToken(refreshToken)
+    user.password = ""
+
+    return res.status(200).send(
+      {
+        msg: `Successfully logged in!`, user: user, refreshToken : refreshToken, accessToken : accessToken}
+      )
     }
     
     else{
