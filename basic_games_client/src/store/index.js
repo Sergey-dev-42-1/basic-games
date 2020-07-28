@@ -51,12 +51,12 @@ let store = new Vuex.Store({
             error = err
           }
         }
-        if (error.response.status == 403)
+        else if (error !== '' && error.response.status == 403)
           {
             console.log('handling 403')
             try{
               res = await registrationService.giveAccessToken(state.refreshToken)
-              console.log(res)
+              console.log(res.data.accessToken)
               commit('refreshAccess',{refreshToken: res.data.accessToken})
               return true
             }

@@ -39,6 +39,10 @@ app.post('/api/user/register' , async (req,res) => {
     res.status(400).send(err.data)
   }
   let response = await DB_obj.registerUser(new User(req.body.username,req.body.email,hash))
+  
+  if(response.status !==200){
+    res.status(400).send(response)
+  }
   res.status(200).send(response)
 });
 

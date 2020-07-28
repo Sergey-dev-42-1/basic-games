@@ -76,8 +76,6 @@ export default {
         window.setTimeout(()=>{this.alert = false}, 3000)
         return
       }
-      console.log(login_res)
-      
 
       this.al_type = 'success'
       temp_alert.innerText = login_res.data.msg
