@@ -8,12 +8,12 @@
         <span class=" font-weight-light">ames</span>
         </v-toolbar-title>
         <v-spacer></v-spacer>
-    <v-toolbar-items>
-    <v-btn v-if="!loggedIn" to="/register">Register</v-btn>
-    <v-btn v-if="!loggedIn" to="/login" class="">Sign In</v-btn>
-    <v-btn to="/about">About</v-btn>
+    <div>
+    <v-btn  v-if="!loggedIn" to="/register">Register</v-btn>
+    <v-btn  v-if="!loggedIn" to="/login" class="">Sign In</v-btn>
+    <v-btn  to="/about">About</v-btn>
+    </div>
     <loggedTab v-if="loggedIn"></loggedTab>
-    </v-toolbar-items>
   </v-toolbar>
 </body>
 </html>
@@ -40,5 +40,7 @@ export default {
 </script>
 
 <style scoped>
-
+html{
+  overflow: hidden;
+}
 </style>

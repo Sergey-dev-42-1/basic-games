@@ -5,7 +5,6 @@
 <v-menu>
     <template v-slot:activator="{ on }">
     <v-btn
-        block
         color="indigo"
         dark
         v-on="on"
@@ -16,7 +15,6 @@
 
         <v-list>
     <v-list-item 
-         
         align=center
         @click="logout"
     >

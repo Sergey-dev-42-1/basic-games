@@ -5,8 +5,10 @@ import App from './App'
 import store from './store/index'
 import router from './router/router'
 import vuetify from './plugins/vuetify';
-Vue.config.productionTip = false
-
+import VueSocketIOExt from 'vue-socket.io-extended';
+import io from 'socket.io-client';
+const socket = io('http://localhost:8081');
+Vue.use(VueSocketIOExt, socket);
 /* eslint-disable no-new */
 new Vue({
   router,
@@ -14,3 +16,4 @@ new Vue({
   vuetify,
   render: h => h(App)
 }).$mount('#app')
+

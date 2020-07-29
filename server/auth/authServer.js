@@ -34,17 +34,17 @@ app.get('/token' , async (req,res) => {
     const refresh_token = req.headers['authorization']
     console.log(refresh_token)
     if (refresh_token === undefined){ 
-      return res.sendStatus(400).end('No refresh token sent')
+      return res.status(400).end('No refresh token sent')
     }
 
     if (await !auth_db_obj.checkRefreshTokenExistence(refresh_token)){
-      return res.sendStatus(401).end('False Refresh token')
+      return res.status(401).end('False Refresh token')
     }
 
     jwt.verify(refresh_token, process.env.REFRESH_SECRET_KEY, (err, user) => {
       if (err) 
       {
-        return res.sendStatus(403).end('Token verification failed')
+        return res.status(403).end('Token verification failed')
       }
       const accessToken = generateAccessToken({ name: user.username})
       res.status(200).send({accessToken : accessToken})
@@ -55,13 +55,12 @@ app.get('/token' , async (req,res) => {
   app.get('/auth' , async (req,res) => {
     const access_token = req.headers['authorization']
     console.log("Authorizing")
-    console.log(access_token)
     if (access_token === undefined) { 
-      return res.sendStatus(401).send('No access token sent')
+      return res.status(401).send('No access token sent')
     }
     jwt.verify(access_token, process.env.ACCESS_SECRET_KEY, (err, user) => {
       if (err) {
-        return res.sendStatus(403).end('Token expired')
+        return res.status(403).end('Token expired')
       }
       res.status(200).send("Authorized")
     })

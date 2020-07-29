@@ -37,6 +37,7 @@ let store = new Vuex.Store({
       localStorage.setItem('accessToken', payload.accessToken) 
       localStorage.setItem('refreshToken', payload.refreshToken) 
       context.commit('login', payload)
+      this._vm.$socket.client.emit('userConnected', payload.user.username);
     },
     async authorize({commit,state}){
         let res = '';
@@ -51,13 +52,16 @@ let store = new Vuex.Store({
             error = err
           }
         }
-        else if (error !== '' && error.response.status == 403)
+        else{
+          commit('logout')
+          return false
+        }
+        if (error !== '' && error.response.status === 403)
           {
             console.log('handling 403')
             try{
               res = await registrationService.giveAccessToken(state.refreshToken)
-              console.log(res.data.accessToken)
-              commit('refreshAccess',{refreshToken: res.data.accessToken})
+              commit('refreshAccess',{accessToken: res.data.accessToken})
               return true
             }
             catch(err){
@@ -67,10 +71,6 @@ let store = new Vuex.Store({
               return false
             }
           }
-        else{
-          commit('logout')
-          return false
-        }
     },
     logout(context){
       context.commit('logout')

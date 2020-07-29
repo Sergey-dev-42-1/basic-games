@@ -2,16 +2,36 @@
 <html>
 <head title="Rooms"></head>
 <body>
-    <div >
-    <h1>Rooms  </h1>
+    <div>
+    <h1>{{$socket.connected ? 'Connected' : 'Disconnected'}}</h1>
     </div>
+    <br/>
+    <br/>
+    <div>
+    <h2>{{socketMessage}}</h2>
+    </div>
+    <v-btn absolute right @click="pingServer()">Ping Server</v-btn>
 </body>
 </html>
 </template>
 
 <script>
 export default {
-    
+    data(){
+        return{
+        socketMessage: '1'
+        }
+    },
+    mounted(){
+        this.$socket.client.on('messageChannel', (val) => {
+        this.socketMessage = val
+    })
+    },
+    methods: {
+    pingServer() {
+      this.$socket.client.emit('pingServer', 'PING!')
+    }
+  }
 }
 </script>
 

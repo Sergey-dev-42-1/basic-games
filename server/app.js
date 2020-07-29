@@ -18,6 +18,7 @@ const upload = multer()
 const bodyParser = require('body-parser')
 
 const app = express()
+const http = require('http').createServer(app) 
 //Присоединение библиотек
 app.use(upload.array())
 app.use(cors())
@@ -53,5 +54,9 @@ app.patch('/api/user/rating' , async (req,res) => {
     let response = await DB_obj.updateRating(req.body.username, req.body.changeValue)
     res.send(response.status,response) 
    });
+   
+const io = require('./sockets/roomsServer').socket
+io(http)
 
-app.listen(port || 8081)
+// const socket_handler = require('./sockets/mainSocket').socket(http)
+http.listen(port || 8081)
