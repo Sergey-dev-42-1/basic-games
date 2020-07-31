@@ -9,8 +9,10 @@
     <br/>
     <div>
     <h2>{{socketMessage}}</h2>
+    <h2>{{socketMessage2}}</h2>
     </div>
-    <v-btn absolute right @click="pingServer()">Ping Server</v-btn>
+    <v-btn  right @click="getOnlineUsers()">Ping Server</v-btn>
+    <v-btn  right @click="getAllUsers()">Ping Server</v-btn>
 </body>
 </html>
 </template>
@@ -23,13 +25,22 @@ export default {
         }
     },
     mounted(){
-        this.$socket.client.on('messageChannel', (val) => {
+        this.$socket.client.on('sendingOnlineUsers', (val) => {
+            console.log(val)
         this.socketMessage = val
-    })
+        })
+        this.$socket.client.on('sendingAllUsers', (val) => {
+            console.log(val)
+        this.socketMessage2 = val
+         })
+    
     },
     methods: {
-    pingServer() {
-      this.$socket.client.emit('pingServer', 'PING!')
+    getOnlineUsers() {
+      this.$socket.client.emit('sendOnlineUsers')
+    },
+    getAllUsers() {
+      this.$socket.client.emit('sendAllUsers')
     }
   }
 }

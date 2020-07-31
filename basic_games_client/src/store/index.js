@@ -37,7 +37,7 @@ let store = new Vuex.Store({
       localStorage.setItem('accessToken', payload.accessToken) 
       localStorage.setItem('refreshToken', payload.refreshToken) 
       context.commit('login', payload)
-      this._vm.$socket.client.emit('userConnected', payload.user.username);
+      this._vm.$socket.client.emit('userLoggedIn',{username: payload.user.username, rating: payload.user.rating})
     },
     async authorize({commit,state}){
         let res = '';
@@ -72,8 +72,10 @@ let store = new Vuex.Store({
             }
           }
     },
-    logout(context){
+    logout(context){ 
+      this._vm.$socket.client.emit('userLoggedOut',{username: context.state.user.username, rating: context.state.user.rating})
       context.commit('logout')
+      
     }
   },
   modules: {

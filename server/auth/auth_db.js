@@ -4,7 +4,7 @@ const DB = require("../db").db
 
 class AuthMethods extends DB{
     constructor(){
-        super()
+        super(100)
     }
     saveToken(token){
         let sql = `INSERT INTO basic_games.tokens

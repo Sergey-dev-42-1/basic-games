@@ -8,9 +8,16 @@ import vuetify from './plugins/vuetify';
 import VueSocketIOExt from 'vue-socket.io-extended';
 import io from 'socket.io-client';
 const socket = io('http://localhost:8081');
-Vue.use(VueSocketIOExt, socket);
+Vue.use(VueSocketIOExt, socket, {store});
 /* eslint-disable no-new */
 new Vue({
+  sockets: {
+    connect: function () {
+        socket.emit('userConnected', store.state.user.username ? 
+        {username :store.state.user.username, 
+        rating: store.state.user.rating} : false)
+    }
+    },
   router,
   store,
   vuetify,

@@ -1,40 +1,38 @@
 //Инициализация Redis
-const redis = require('redis')
-const fs = require('fs')
-let client = undefined
-fs.readFile('./sockets/credentials.json', 'utf-8', function(err, data) {
-    if(err) throw err;
-    creds = JSON.parse(data);
-    client = redis.createClient('redis://' + creds.user + ':' + creds.password + '@' + creds.host + ':' + creds.port);
-    client.once('ready', function() {
-        console.log('Connected to redis')
-        client.get('online_users', function(err, reply) {
-            if (reply) {
-                users = JSON.parse(reply);
-            }
-        });
-        client.get('chat_messages', function(err, reply) {
-            if (reply) {
-                chat_messages = JSON.parse(reply);
-            }
-        });
-    });
-});
+
+const client = require('./redisOperations').client
+
 
 function socketServer(httpServer) {
     const io = require('socket.io')(httpServer)
     
     io.on('connection', (socket) => {
         console.log('connected')
-        redis.set('')
-        socket.on('disconnect', ()=>{
-            console.log('disconnect')
+        socket.on('userLogin', data => {
+
         })
-        socket.on('pingServer', ()=>{
-          io.emit('messageChannel','hear ya')
-          console.log('Got pinged')
+        socket.on('userConnected', (data)=>{
+           client.handleUserConnection(data)
         })
-       
+        socket.on('userLoggedIn', (data)=>{
+            client.handleUserLogin(data)
+         })
+        socket.on('userLoggedOut', (data)=>{
+            console.log("user logged out")  
+            client.handleUserLogout(data)
+        })
+        socket.on('disconnect', (data)=>{
+            console.log('disconnected')
+            client.handleUserDisconnect(data)
+        })
+        socket.on('sendOnlineUsers', async ()=>{
+          io.emit('sendingOnlineUsers', await client.sendOnlineUsers())
+          console.log('sendingOnlineUsers')
+        })
+        socket.on('sendAllUsers', async ()=>{
+          io.emit('sendingAllUsers', await client.sendAllUsers())
+          console.log('sendingAllUsers')
+        })
     })
 }
 

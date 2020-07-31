@@ -83,6 +83,24 @@ class DB{
     })
 }
 
+fetchAllUsers(){
+
+  let sql = 'SELECT username,rating'
+  +' FROM basic_games.users;'
+  return new Promise((resolve) => {
+      this.db.query(sql, 
+      (err,results,fields) => {
+        console.log(results)
+      if(err) throw err
+      if (results.length > 0){
+        resolve(results)
+      } 
+      else{
+        resolve(false)
+      }
+    })
+  })
+}
    updateRating(username, value = 1){
     let sql = 'UPDATE basic_games.users'
     +' SET users.rating = users.rating + ?'

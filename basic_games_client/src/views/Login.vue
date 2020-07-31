@@ -86,7 +86,7 @@ export default {
         user: login_res.data.user,
         refreshToken: login_res.data.refreshToken,
         accessToken: login_res.data.accessToken
-         })
+        })
         this.$router.push('/')},3000)
     }
     }
