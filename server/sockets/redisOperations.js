@@ -45,7 +45,7 @@ class redisClient{
             }
         }
     }
-    async handleUseLogout(user){
+    async handleUserLogout(user){
         let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
         if(user.username !== undefined){
             if(await zscore_prom('onlineUsers',user.username) === null){

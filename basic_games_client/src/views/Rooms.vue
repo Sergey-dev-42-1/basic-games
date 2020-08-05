@@ -21,7 +21,7 @@
 export default {
     data(){
         return{
-        socketMessage: '1'
+        socketMessage: ''
         }
     },
     mounted(){

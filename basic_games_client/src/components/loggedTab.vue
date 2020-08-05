@@ -47,6 +47,7 @@ export default {
         if ( /2\d{2}$/.test(logout_res.status)){
             this.$store.dispatch('logout')
         }
+        this.$router.push("/")
       }
   }
 }
