@@ -54,6 +54,7 @@ Vue.use(VueRouter)
     async beforeEnter(to, from, next){
       console.log('Dispatched check')
       let auth = await store.dispatch('authorize')
+      
       if(auth){
         next()
       }

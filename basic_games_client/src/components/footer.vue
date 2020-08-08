@@ -27,7 +27,7 @@
 <script>
 
 export default {
-  name: 'navbar',
+  name: 'customFooter',
 }
 </script>
 

@@ -9,10 +9,12 @@ function socketServer(httpServer) {
     io.on('connection', (socket) => {
         console.log('connected')
         socket.on('userLogin', data => {
-
         })
         socket.on('userConnected', (data)=>{
            client.handleUserConnection(data)
+        })
+        socket.on('userRegistered', (data)=>{
+            client.handleUserRegistration(data)
         })
         socket.on('userLoggedIn', (data)=>{
             client.handleUserLogin(data)

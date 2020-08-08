@@ -108,6 +108,10 @@ export default {
       window.setTimeout(()=>{this.alert = false}, 3000)
 
       setTimeout(async () => {
+        this._vm.$socket.client.emit('userRegistered',
+        {username: this.$store.state.user.username, 
+        rating: this.$store.state.user.rating})
+        
         await this.$store.dispatch('login',{
         user: login_res.data.user,
         refreshToken: login_res.data.refreshToken,

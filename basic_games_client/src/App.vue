@@ -19,9 +19,8 @@ export default {
     navbar,
     customFooter
   },
-
   data: () => ({
-    //
+    allUsers:[]
   }),
 };
 </script>

@@ -2,47 +2,25 @@
 <html>
 <head title="Rooms"></head>
 <body>
-    <div>
-    <h1>{{$socket.connected ? 'Connected' : 'Disconnected'}}</h1>
-    </div>
-    <br/>
-    <br/>
-    <div>
-    <h2>{{socketMessage}}</h2>
-    <h2>{{socketMessage2}}</h2>
-    </div>
-    <v-btn  right @click="getOnlineUsers()">Ping Server</v-btn>
-    <v-btn  right @click="getAllUsers()">Ping Server</v-btn>
+<leaderboard />
+<onlineusers />
 </body>
 </html>
 </template>
 
 <script>
+import leaderboard from '../components/leaderboard'
+import onlineusers from '../components/onlineUsers'
 export default {
     data(){
         return{
         socketMessage: ''
         }
     },
-    mounted(){
-        this.$socket.client.on('sendingOnlineUsers', (val) => {
-            console.log(val)
-        this.socketMessage = val
-        })
-        this.$socket.client.on('sendingAllUsers', (val) => {
-            console.log(val)
-        this.socketMessage2 = val
-         })
-    
-    },
-    methods: {
-    getOnlineUsers() {
-      this.$socket.client.emit('sendOnlineUsers')
-    },
-    getAllUsers() {
-      this.$socket.client.emit('sendAllUsers')
+    components:{
+      leaderboard,
+      onlineusers
     }
-  }
 }
 </script>
 

@@ -25,7 +25,6 @@ class redisClient{
      // это не считалось полным выходом из онлайна а логин не добавлял лишних подключений
     // OnlineUsers в рейтинге хранит количество текущих подключений
     async handleUserLogin(user){
-        let zrange_prom =  util.promisify(this.client.zrange).bind(this.client)
         let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
         if(user.username !== undefined){
             if(await zscore_prom('onlineUsers',user.username) === null){
@@ -34,7 +33,6 @@ class redisClient{
         }
     }
     async handleUserConnection(user){
-        let zrange_prom =  util.promisify(this.client.zrange).bind(this.client)
         let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
         if(user.username !== undefined){
             if(await zscore_prom('onlineUsers',user.username) === null){
@@ -45,6 +43,17 @@ class redisClient{
             }
         }
     }
+
+    async handleUserRegistration(user){
+        this.client.zremrangebyscore('allUsers','-inf','+inf')
+        let allUsers = await db_obj.fetchAllUsers()
+        allUsers.forEach(user =>{
+            
+            this.client.zadd('allUsers',user.rating,user.username)
+        })
+        console.log(allUsers)
+    }
+
     async handleUserLogout(user){
         let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
         if(user.username !== undefined){
@@ -64,6 +73,9 @@ class redisClient{
             }
            else{
             this.client.zincrby('onlineUsers',-1,user.username)
+            if(this.client.zscore_prom('onlineUsers',user.username) === 0){
+                this.client.zrem('onlineUsers',user.username)
+            }
            }
         }
     }
@@ -76,7 +88,7 @@ class redisClient{
             let online_users = []
             for(let i = 0; i < online_users_arr.length; i++){
                 if(i%2 === 0){
-                    online_users.push(online_users_arr[i])
+                    online_users.push({username: online_users_arr[i]})
                 }
             }
             console.log(online_users)

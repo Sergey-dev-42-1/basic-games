@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import registrationService from '../services/registrationService'
+import usersState from './usersState'
 Vue.use(Vuex)
 let store = new Vuex.Store({
   
@@ -27,6 +28,8 @@ let store = new Vuex.Store({
       localStorage.removeItem('user')
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
+      //Вызываем логаут для состояния пользователей
+      this.dispatch("userLoggedOut",state.user)
     }
   },
   actions: {
@@ -79,6 +82,7 @@ let store = new Vuex.Store({
     }
   },
   modules: {
+    usersState
   }
 })
 export default store
