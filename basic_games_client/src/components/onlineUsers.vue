@@ -22,7 +22,7 @@ export default {
         headers: [
             {text: "Nickname", value: 'username',align: 'start'},
         ],
-        users: this.$store.state.usersState.onlineUsers
+        users: this.$store.state.roomsState.onlineUsers
     }
     
     },
@@ -30,9 +30,9 @@ export default {
         this.$store.dispatch('storeOnlineUsers')
 
         setTimeout(()=>{
-            this.users = this.$store.state.usersState.onlineUsers
+            this.users = this.$store.state.roomsState.onlineUsers
             setTimeout(()=>{
-            this.users = this.$store.state.usersState.onlineUsers
+            this.users = this.$store.state.roomsState.onlineUsers
         },1000*30)
         },500)
     },

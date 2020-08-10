@@ -16,7 +16,7 @@ export default {
     },
     methods: {
         redirect: function () {
-            window.setInterval(()=>{this.$router.push('/')},5000)
+            window.setTimeout(()=>{this.$router.push('/')},5000)
         }
     },
     

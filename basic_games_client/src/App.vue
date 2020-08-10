@@ -20,7 +20,6 @@ export default {
     customFooter
   },
   data: () => ({
-    allUsers:[]
   }),
 };
 </script>

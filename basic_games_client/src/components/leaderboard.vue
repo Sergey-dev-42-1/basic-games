@@ -24,15 +24,15 @@ export default {
             {text: "Nickname", value: 'username'},
             {text: 'Score', value: 'rating'}
         ],
-        users: this.$store.state.usersState.allUsers
+        users: this.$store.state.roomsState.allUsers
     }
     },
     beforeCreate(){
         this.$store.dispatch('storeAllUsers')
         setTimeout(()=>{
-            this.users = this.$store.state.usersState.allUsers
+            this.users = this.$store.state.roomsState.allUsers
             setTimeout(()=>{
-            this.users = this.$store.state.usersState.allUsers
+            this.users = this.$store.state.roomsState.allUsers
         },1000*60*10)
         },500)
     }

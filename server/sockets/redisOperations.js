@@ -43,7 +43,6 @@ class redisClient{
             }
         }
     }
-
     async handleUserRegistration(user){
         this.client.zremrangebyscore('allUsers','-inf','+inf')
         let allUsers = await db_obj.fetchAllUsers()
@@ -117,6 +116,93 @@ class redisClient{
             throw err
         }
         
+    }
+    //Обработка механизма комнат
+    
+    async handleRoomCreation(user){
+        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
+        let zcount_prom =  util.promisify(this.client.zcount).bind(this.client)
+        let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
+        console.log(await zscore_prom(`rooms`,user.username) !== null)
+        if(await zscore_prom(`rooms`,user.username) !== null ){
+            console.log('Already exists')
+            return false
+        }
+        else{
+            let rooms_arr = await zrange_prom(`rooms`,0,-1,'WITHSCORES')
+            let rooms_arr_len = await zcount_prom(`rooms`,'-inf','+inf') 
+            let roomIds = []
+            if(rooms_arr.length > 0){
+                for(let i = 0; i < rooms_arr_len*2; i+=2){
+                    roomIds.push(rooms_arr[i+1])
+                }
+                this.client.zadd('rooms',Math.max(...roomIds)+1,user.username)
+                console.log('Successfully created')
+                return {host: user.username,
+                        roomId: Math.max(...roomIds)+1,
+                        capacity: 1}
+            }
+            else{
+                this.client.zadd('rooms', 1, user.username)
+                console.log('Successfully created')
+                return {host: user.username,
+                    roomId: 1,
+                    capacity: 1}
+            }
+           
+        }
+    }
+    async handleRoomDestruction(roomId, user){
+        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
+        if(await zscore_prom('rooms',user.username) !== undefined){
+            this.client.zrem('rooms', user.username)
+            return true
+        }
+    }
+    async handleRoomConnection(data){
+        let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
+        let zcount_prom = util.promisify(this.client.ZCOUNT).bind(this.client)
+        //Если в комнате уже двое игроков, не добавлять еще одного
+        if(await zcount_prom (`room:${data.roomId}`,'-inf','+inf') <= 2 ){
+            this.client.zadd(`room:${data.roomId}`,1, data.username)
+            return true
+        }
+        else{
+            return false
+        }
+    }
+    async handleRoomLeaving(data){
+        this.client.zrem(`room:${data.roomId}`,data.username)
+        return true
+    }
+    //Если параметр не передан, то возвращается весь список комнат и количество пользователей в них
+    async getRoomOwnerById(roomId){
+        let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
+        let zcount_prom = util.promisify(this.client.ZCOUNT).bind(this.client)
+        if(roomId === undefined){
+            //Возвращает массив в котором чередуются имена пользователей создавших комнату и номера комнат
+            let rooms_arr = await zrange_prom('rooms',0,-1,"WITHSCORES")
+            let rooms = []
+            for(let i = 0; i < rooms_arr.length; i+=2){
+                let room_cap = await zcount_prom(`room:${rooms_arr[i+1]}`,'-inf','+inf')
+                console.log(room_cap)
+                rooms.push(
+                    {host: rooms_arr[i], 
+                    roomId: rooms_arr[i+1],
+                    capacity: room_cap})
+            }
+            console.log(rooms)
+            return rooms
+        }
+        else{
+            //Вернет имя пользователя создавшего комнату
+            let rooms_arr = await zrange_prom('rooms',0,-1,"WITHSCORES")
+            for(let i = 0; i < rooms_arr.length; i+=2){
+                if(rooms_arr[i+1] === roomId){
+                    return {host:rooms_arr[i]}
+                }
+            }
+        }
     }
 }
 

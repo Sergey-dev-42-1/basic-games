@@ -6,6 +6,7 @@ import Login from '../views/Login.vue'
 import NotFound from '../views/NotFound.vue'
 import Unauthorized from '../views/Unauthorized'
 import Rooms from '../views/Rooms'
+import Room from '../views/Room'
 import store from '../store/index'
 Vue.use(VueRouter)
 
@@ -47,6 +48,7 @@ Vue.use(VueRouter)
       else{next()}
     }
   },
+
   {
     path: '/rooms',
     name: 'Rooms',
@@ -62,6 +64,25 @@ Vue.use(VueRouter)
         next('/401')
       }
     }
+  },
+  {
+    path: '/rooms/:id',
+    name: 'Room',
+    component: Room,
+    async beforeEnter(to, from, next){
+      if(store.state.roomsState.roomIds.indexOf(to.params.id) === -1 ){
+        next('/404')
+      }
+      let auth = await store.dispatch('authorize')
+      if(!auth){
+        next('/401')
+      }
+      else{
+        
+        next()
+      }
+    },
+    
   },
   {
     path: '/401',
