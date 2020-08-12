@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import registrationService from '../services/registrationService'
 import roomsState from './roomsState'
+import tictactoeState from './tictactoeState'
 Vue.use(Vuex)
 let store = new Vuex.Store({
   
@@ -82,7 +83,8 @@ let store = new Vuex.Store({
     }
   },
   modules: {
-    roomsState
+    roomsState,
+    tictactoeState
   }
 })
 export default store

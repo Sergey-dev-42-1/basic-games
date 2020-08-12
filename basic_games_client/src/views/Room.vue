@@ -3,16 +3,18 @@
       <p>{{this.$route.params.id}}</p>
       <v-btn @click="mockMessage">Mock message</v-btn>
       <p id="chat"></p>
-  </div>
+      <board />
+  </div> 
 </template>
 
 <script>
-
+import board from "../components/gameComponents/board";
 export default {
   name: 'Room',
-
+  components:{
+        board
+      },
   async beforeRouteLeave(to,from,next){
-      console.log(this.$route.params.id + this.$store.state.user.username)
       this.$socket.client.emit('userLeavingRoom',{
         roomId: this.$route.params.id,
         username: this.$store.state.user.username})

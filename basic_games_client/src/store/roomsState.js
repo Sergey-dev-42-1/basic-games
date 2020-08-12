@@ -12,7 +12,7 @@ const mutations = {
     },
     storeCreatedRoom(state,payload){
       state.allRooms.push(payload)
-      state.roomIds.push(payload[0].roomId)
+      state.roomIds.push(payload.roomId)
     },
     storeOnlineUsers(state,payload){
       state.onlineUsers = payload

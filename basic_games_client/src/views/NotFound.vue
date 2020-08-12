@@ -11,15 +11,23 @@
 
 <script>
 export default {
+    data(){
+        return{
+            redirectTimer: ""
+        }
+    },
     mounted: function(){
         this.redirect() 
     },
     methods: {
         redirect: function () {
-            window.setTimeout(()=>{this.$router.push('/')},5000)
+           this.redirectTimer = window.setTimeout(()=>{this.$router.push('/')},5000)
         }
     },
-    
+    beforeRouteLeave(to,from,next){
+        window.clearTimeout(this.redirectTimer)
+        next(true)
+    }, 
 }
 </script>
 
