@@ -24,16 +24,16 @@ export default {
         ],
         users: this.$store.state.roomsState.onlineUsers
     }
-    
-    },
+  },
     beforeCreate(){
         this.$store.dispatch('storeOnlineUsers')
 
         setTimeout(()=>{
             this.users = this.$store.state.roomsState.onlineUsers
             setTimeout(()=>{
+            this.$store.dispatch('storeOnlineUsers')
             this.users = this.$store.state.roomsState.onlineUsers
-        },1000*30)
+        },1000)
         },500)
     },
 }

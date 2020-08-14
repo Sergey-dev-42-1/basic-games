@@ -32,6 +32,7 @@ export default {
         setTimeout(()=>{
             this.users = this.$store.state.roomsState.allUsers
             setTimeout(()=>{
+            this.$store.dispatch('storeAllUsers')
             this.users = this.$store.state.roomsState.allUsers
         },1000*60*10)
         },500)

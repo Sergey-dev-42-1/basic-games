@@ -57,4 +57,4 @@ app.patch('/api/user/rating' , async (req,res) => {
 
 const io = require('./sockets/roomsServer').socket
 io(http)
-http.listen(port || 8081)
+http.listen(8081 || port)

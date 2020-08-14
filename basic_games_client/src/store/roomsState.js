@@ -46,9 +46,6 @@ const actions = {
       this._vm.$socket.client.emit('sendAllRooms')
       },
       //Обработчики
-    socket_roomCreationSucceeded(state,payload){
-      state.commit('storeCreatedRoom',payload)
-    },
     socket_sendingAllUsers(state,payload){
       state.commit('storeAllUsers',payload)
     },

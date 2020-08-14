@@ -1,21 +1,32 @@
 const redis = require('redis')
 const fs = require('fs')
-const db = require('../db').db
+const db = require('../../db').db
 const db_obj = new db(100)
 const util = require('util')
-const { inflate } = require('zlib')
-class redisClient{
+const { compare } = require('bcrypt')
+
+
+class mainRedisClient{
     constructor(){
+        console.log('constructor fired')
         fs.readFile('./sockets/credentials.json', 'utf-8', (err, data) => {
             if(err) throw err;
             let creds = JSON.parse(data);
-            this.client = redis.createClient('redis://' + creds.user + ':' + creds.password + '@' + creds.host + ':' + creds.port);
-            this.client.once('ready', async () => {
+            this.connection = redis.createClient('redis://' + creds.user + ':' + creds.password + '@' + creds.host + ':' + creds.port);
+            console.log('connection created')
+            this.connection.once('ready', async () => {
                 //Сбросить пользователей онлайн после перезагрузки сервера
-                this.client.zremrangebyscore('onlineUsers','-inf','+inf')
+                this.connection.zremrangebyscore('onlineUsers','-inf','+inf')
+                //Сбросить комнаты
+                let zrange_prom =  util.promisify(this.connection.zrange).bind(this.connection)
+                let room_list = await zrange_prom('rooms',-1000,1000,'WITHSCORES')
+                this.connection.zremrangebyscore('rooms','-inf','+inf')
+                for(let i = 0; i < room_list.length; i+=2){
+                    this.connection.zremrangebyscore(`room:${room_list[i+1]}`,-1000,1000)
+                }
                 let allUsers = await db_obj.fetchAllUsers()
                 allUsers.forEach(user =>{
-                    this.client.zadd('allUsers',user.rating,user.username)
+                    this.connection.zadd('allUsers',user.rating,user.username)
                 })
                 console.log('Connected to redis')
             });
@@ -25,55 +36,56 @@ class redisClient{
      // это не считалось полным выходом из онлайна а логин не добавлял лишних подключений
     // OnlineUsers в рейтинге хранит количество текущих подключений
     async handleUserLogin(user){
-        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
+        let zscore_prom =  util.promisify(this.connection.zscore).bind(this.connection)
         if(user.username !== undefined){
             if(await zscore_prom('onlineUsers',user.username) === null){
-                this.client.zadd('onlineUsers',1, user.username)
+                this.connection.zadd('onlineUsers',1, user.username)
             }
         }
     }
     async handleUserConnection(user){
-        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
+        let zscore_prom =  util.promisify(this.connection.zscore).bind(this.connection)
         if(user.username !== undefined){
             if(await zscore_prom('onlineUsers',user.username) === null){
-                this.client.zadd('onlineUsers',1, user.username)
+                this.connection.zadd('onlineUsers',1, user.username)
             }
             else{
-                this.client.zincrby('onlineUsers',1, user.username)
+                this.connection.zincrby('onlineUsers',1, user.username)
             }
         }
     }
     async handleUserRegistration(user){
-        this.client.zremrangebyscore('allUsers','-inf','+inf')
+        this.connection.zremrangebyscore('allUsers','-inf','+inf')
         let allUsers = await db_obj.fetchAllUsers()
         allUsers.forEach(user =>{
             
-            this.client.zadd('allUsers',user.rating,user.username)
+            this.connection.zadd('allUsers',user.rating,user.username)
         })
         console.log(allUsers)
     }
 
     async handleUserLogout(user){
-        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
+        let zscore_prom =  util.promisify(this.connection.zscore).bind(this.connection)
         if(user.username !== undefined){
             if(await zscore_prom('onlineUsers',user.username) === null){
                 console.log("Disconnected user had no connections which is strange")
             }
            else{
-            this.client.zrem('onlineUsers',user.username)
+            this.connection.zrem('onlineUsers',user.username)
            }
         }
     }
-    async handleUserDisconnect(user){
-        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
-        if(user.username !== undefined){
-            if(await zscore_prom('onlineUsers',user.username) === null){
+    async handleUserDisconnect(username){
+        let zscore_prom = util.promisify(this.connection.zscore).bind(this.connection)
+        if(username !== undefined){
+            if(await zscore_prom('onlineUsers',username) === null){
                 console.log("Disconnected user had no connections which is strange")
             }
            else{
-            this.client.zincrby('onlineUsers',-1,user.username)
-            if(this.client.zscore_prom('onlineUsers',user.username) === 0){
-                this.client.zrem('onlineUsers',user.username)
+            await this.connection.zincrby('onlineUsers',-1,username)
+            if(await zscore_prom('onlineUsers',username) === '0'){
+                //TODO: Сделать механизм отслеживания пользователя в комнатах, что бы удалять его из них если он вышел из приложения
+                this.connection.zrem('onlineUsers',username)
             }
            }
         }
@@ -81,7 +93,7 @@ class redisClient{
     // Посылает массив подключенных пользователей(пользователи с нулевым кол-вом подключений, но залогиненные, не передаются)
     async sendOnlineUsers(){
         try{
-            let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
+            let zrange_prom = util.promisify(this.connection.ZRANGE).bind(this.connection)
             //Возвращает массив в котором чередуются имена пользователей и кол-во подключений
             let online_users_arr = await zrange_prom('onlineUsers',0,-1,"WITHSCORES")
             let online_users = []
@@ -100,7 +112,7 @@ class redisClient{
     }
     async sendAllUsers(){
         try{
-            let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
+            let zrange_prom = util.promisify(this.connection.ZRANGE).bind(this.connection)
             //Возвращает массив в котором чередуются имена пользователей и кол-во подключений
             let users_arr = await zrange_prom('allUsers',0,-1,"WITHSCORES")
             let users = []
@@ -117,12 +129,29 @@ class redisClient{
         }
         
     }
+    async refreshAllUsers(){
+        let zrange_prom = util.promisify(this.connection.ZRANGE).bind(this.connection)
+        //Возвращает массив в котором чередуются имена пользователей и кол-во подключений
+        let users_arr = await zrange_prom('allUsers',0,-1,"WITHSCORES")
+        let users = []
+        for(let i = 0; i < users_arr.length; i+=2){
+            users.push(
+                {username: users_arr[i], 
+                rating: users_arr[i+1]})
+        }
+        console.log(users)
+        return users
+    }
+
+
+
     //Обработка механизма комнат
     
     async handleRoomCreation(user){
-        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
-        let zcount_prom =  util.promisify(this.client.zcount).bind(this.client)
-        let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
+        let zscore_prom =  util.promisify(this.connection.zscore).bind(this.connection)
+        let zcount_prom =  util.promisify(this.connection.zcount).bind(this.connection)
+        let zrange_prom =  util.promisify(this.connection.ZRANGE).bind(this.connection)
+
         console.log(await zscore_prom(`rooms`,user.username) !== null)
         if(await zscore_prom(`rooms`,user.username) !== null ){
             console.log('Already exists')
@@ -136,14 +165,14 @@ class redisClient{
                 for(let i = 0; i < rooms_arr_len*2; i+=2){
                     roomIds.push(rooms_arr[i+1])
                 }
-                this.client.zadd('rooms',Math.max(...roomIds)+1,user.username)
+                this.connection.zadd('rooms',Math.max(...roomIds)+1,user.username)
                 console.log('Successfully created')
                 return {host: user.username,
                         roomId: Math.max(...roomIds)+1,
                         capacity: 1}
             }
             else{
-                this.client.zadd('rooms', 1, user.username)
+                this.connection.zadd('rooms', 1, user.username)
                 console.log('Successfully created')
                 return {host: user.username,
                     roomId: 1,
@@ -153,18 +182,26 @@ class redisClient{
         }
     }
     async handleRoomDestruction(roomId, user){
-        let zscore_prom =  util.promisify(this.client.zscore).bind(this.client)
+        let zscore_prom =  util.promisify(this.connection.zscore).bind(this.connection)
         if(await zscore_prom('rooms',user.username) !== undefined){
-            this.client.zrem('rooms', user.username)
+
+            this.connection.zrem('rooms', user.username)
+            this.connection.zremrangebyscore(`room:${roomId}`,-1000,1000)
+
+            this.roomIds.filter((value)=>{
+                if(roomId === value)
+                {
+                    return false
+                }
+                else return true})
             return true
         }
     }
     async handleRoomConnection(data){
-        let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
-        let zcount_prom = util.promisify(this.client.ZCOUNT).bind(this.client)
+        let zcount_prom = util.promisify(this.connection.ZCOUNT).bind(this.connection)
         //Если в комнате уже двое игроков, не добавлять еще одного
         if(await zcount_prom (`room:${data.roomId}`,'-inf','+inf') <= 2 ){
-            this.client.zadd(`room:${data.roomId}`,1, data.username)
+            this.connection.zadd(`room:${data.roomId}`,1, data.username)
             return true
         }
         else{
@@ -172,13 +209,20 @@ class redisClient{
         }
     }
     async handleRoomLeaving(data){
-        this.client.zrem(`room:${data.roomId}`,data.username)
+        let zcount_prom = util.promisify(this.connection.ZCOUNT).bind(this.connection)
+        if(await zcount_prom (`room:${data.roomId}`,'-inf','+inf') === 0 ){
+           this.handleRoomDestruction(data.roomId)
+        }
+        this.connection.zrem(`room:${data.roomId}`,data.username)
         return true
+    }
+    check(){
+        console.log('check')
     }
     //Если параметр не передан, то возвращается весь список комнат и количество пользователей в них
     async getRoomOwnerById(roomId){
-        let zrange_prom = util.promisify(this.client.ZRANGE).bind(this.client)
-        let zcount_prom = util.promisify(this.client.ZCOUNT).bind(this.client)
+        let zrange_prom = util.promisify(this.connection.ZRANGE).bind(this.connection)
+        let zcount_prom = util.promisify(this.connection.ZCOUNT).bind(this.connection)
         if(roomId === undefined){
             //Возвращает массив в котором чередуются имена пользователей создавших комнату и номера комнат
             let rooms_arr = await zrange_prom('rooms',0,-1,"WITHSCORES")
@@ -205,5 +249,4 @@ class redisClient{
         }
     }
 }
-
-module.exports.client = new redisClient()
+module.exports.mainClient = new mainRedisClient()

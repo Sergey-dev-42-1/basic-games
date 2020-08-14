@@ -28,11 +28,10 @@ export default {
     }
     },
     sockets:{
-      roomCreationSucceeded(){
+      sendingAllRooms(){
           this.rooms = this.$store.state.roomsState.allRooms
-      },
-      sendingAllRooms(data){
-          this.rooms = data
+          console.log(this.$store.state.roomsState.allRooms)
+          this.$forceUpdate()
       },
     },
     beforeCreate(){

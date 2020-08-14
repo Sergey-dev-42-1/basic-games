@@ -28,25 +28,98 @@ import cell from "./cell";
     },
     data() { return {
       board: this.$store.state.tictactoeState.board,
-      status: "",
+      status: '',
       ready_flag:false,
     } },
+    created(){
+      console.log("checking users in room")
+      this.$store.dispatch('checkUsersInRoom',this.$route.params.id)
+      this.status_unwatch = this.$store.watch(
+      (state) => state.tictactoeState.status,
+      (newValue) => {
+        this.status = newValue
+      },
+    );
+    },
+    beforeDestroy(){
+      this.status_unwatch();
+    },
+    sockets: {
+      userEnteredRoom(payload){
+        this.$store.dispatch('opponentConnected', payload.username)
+      },
+      userLeftRoom(){
+        this.$store.dispatch('gameOver', "Opponent left the room!")
+        this.ready_flag = false
+        this.$forceUpdate()
+      },
+      enemyReady(){
+        this.$store.dispatch('statusSet',"Enemy ready!") 
+        console.log("Enemy ready!")
+        this.$store.dispatch('enemyReady')
+      },
+      signSet(payload){
+        console.log('Received sign: ' + payload)
+        this.$store.dispatch('signSet',payload)
+      },
+      gameStart(){
+        console.log('game started')
+        this.$store.dispatch('gameStart')
+        this.$store.dispatch('statusSet',"Starting!")
+      },
+      turnChange(payload){
+        console.log(payload)
+        console.log('game started')
+        if(!payload){
+          this.$store.dispatch('turnChange')
+          this.$store.dispatch('statusSet', "Your move!")
+        }
+        else{
+          this.$store.dispatch('move', { row: payload.row, column: payload.column, sign: payload.sign})
+          this.$store.dispatch('turnChange')
+          this.$store.dispatch('statusSet',"Your move!")
+          console.log(this.$store.state.tictactoeState.board)
+         
+        }
+        this.$forceUpdate()
+      },
+    },
+    async beforeRouteLeave(to,from,next){
+      this.$store.dispatch('gameOver')
+      next(true)
+    }, 
     methods:{
         ready(){
-           this.status = "User ready!"
+          if(this.$store.state.tictactoeState.enemy === ""){
+            this.$store.dispatch('statusSet',"No one in room!")
+          }
+          else{
+           this.$store.dispatch('statusSet', "Ready!")
            this.ready_flag = true
-           //Send conf to server
+           this.$socket.client.emit('playerReady', this.$route.params.id)
+          }
         },
         move(row,column){
             if(!this.$store.state.tictactoeState.started){
-               this.status = "Game didn't start!"
+               this.$store.dispatch('statusSet',"Game didn't start!")
             }
             else if(!this.$store.state.tictactoeState.turn){
-                this.status = "It's not your turn!"
+                this.$store.dispatch('statusSet',"It's not your turn!")
+            }
+            else if(this.$store.state.tictactoeState.board[row][column] !==""){
+                this.$store.dispatch('statusSet',"Already taken!")
             }
             else{
-                this.$store.state.tictactoeState.board[row][column] = this.$store.state.tictactoeState.moveSign
-                this.$store.state.tictactoeState.turn = false
+                this.$store.dispatch('move',{row: row,column: column, sign:this.$store.state.tictactoeState.moveSign }) 
+                this.$store.dispatch('turnChange')
+                this.$store.dispatch('statusSet',"Enemy's move!")
+                this.$socket.client.emit('madeMove',
+                                        {
+                                        roomId: this.$route.params.id,
+                                        row: row, 
+                                        column: column, 
+                                        sign:this.$store.state.tictactoeState.moveSign})
+                console.log(this.$store.state.tictactoeState.turnNum)                        
                 this.$forceUpdate()
             }
         }
