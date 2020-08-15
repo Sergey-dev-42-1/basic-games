@@ -24,10 +24,6 @@ class mainRedisClient{
                 for(let i = 0; i < room_list.length; i+=2){
                     this.connection.zremrangebyscore(`room:${room_list[i+1]}`,-1000,1000)
                 }
-                let allUsers = await db_obj.fetchAllUsers()
-                allUsers.forEach(user =>{
-                    this.connection.zadd('allUsers',user.rating,user.username)
-                })
                 console.log('Connected to redis')
             });
         });
@@ -112,6 +108,7 @@ class mainRedisClient{
     }
     async sendAllUsers(){
         try{
+            await this.refreshAllUsers()
             let zrange_prom = util.promisify(this.connection.ZRANGE).bind(this.connection)
             //Возвращает массив в котором чередуются имена пользователей и кол-во подключений
             let users_arr = await zrange_prom('allUsers',0,-1,"WITHSCORES")
@@ -130,21 +127,12 @@ class mainRedisClient{
         
     }
     async refreshAllUsers(){
-        let zrange_prom = util.promisify(this.connection.ZRANGE).bind(this.connection)
-        //Возвращает массив в котором чередуются имена пользователей и кол-во подключений
-        let users_arr = await zrange_prom('allUsers',0,-1,"WITHSCORES")
-        let users = []
-        for(let i = 0; i < users_arr.length; i+=2){
-            users.push(
-                {username: users_arr[i], 
-                rating: users_arr[i+1]})
-        }
-        console.log(users)
-        return users
+        this.connection.zremrangebyscore('allUsers', '-inf','+inf')
+        let allUsers = await db_obj.fetchAllUsers()
+        allUsers.forEach(user =>{
+            this.connection.zadd('allUsers',user.rating,user.username)
+        })
     }
-
-
-
     //Обработка механизма комнат
     
     async handleRoomCreation(user){

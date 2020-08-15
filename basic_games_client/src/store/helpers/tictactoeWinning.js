@@ -6,8 +6,11 @@ module.exports = function(board,sign){
     for(let win = 0 ; win < winning_cond.length; win++){
         let won = sign
         for(let cell = 0; cell < winning_cond[win].length; cell++){
-            if(board[winning_cond[win][cell]] !== sign){
+            let check_row = Math.floor(winning_cond[win][cell] / 3)
+            let check_cell = winning_cond[win][cell] % 3
+            if(board[check_row][check_cell] !== sign){
                 won = false
+                console.log(winning_cond[win] + " failed")
                 break
             }
         }

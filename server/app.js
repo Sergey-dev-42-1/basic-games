@@ -52,7 +52,7 @@ app.post('/api/user/register' , async (req,res) => {
 app.patch('/api/user/rating' , async (req,res) => {
     //10 - количество раундов хеширования
     let response = await DB_obj.updateRating(req.body.username, req.body.changeValue)
-    res.send(response.status,response) 
+    res.status(200).send(response)
    });
 
 const io = require('./sockets/roomsServer').socket

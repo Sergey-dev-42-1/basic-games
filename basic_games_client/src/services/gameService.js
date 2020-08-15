@@ -1,6 +1,8 @@
 import Api from './Main_api'
-export default{
+export default {
     updateRating (values) {
-        return Api().post('/user/rating', values)
-      }
+      return Api().patch('/user/rating', values)
+    }
 }
+
+   
