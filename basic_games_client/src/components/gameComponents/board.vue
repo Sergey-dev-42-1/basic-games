@@ -52,6 +52,7 @@ export default {
     this.restart_unwatch = this.$store.watch(
       (state) => state.tictactoeState.restart_flag,
       (newValue) => {
+        console.log("restart value changed");
         this.restart_flag = newValue;
       }
     );
@@ -65,8 +66,10 @@ export default {
     userEnteredRoom(payload) {
       this.$store.dispatch("opponentConnected", payload.username);
     },
-    userLeftRoom() {
-      this.$store.dispatch("gameOver", { reason: "Opponent left the room!" });
+    async userLeftRoom() {
+      this.$store.dispatch("statusSet", "Opponent left the room!");
+      await this.$store.dispatch("checkUsersInRoom", this.$route.params.id);
+      await this.$store.dispatch("resetState", { reason: "Draw" });
       this.ready_flag = false;
       this.restart_flag = false;
       this.$forceUpdate();
@@ -125,7 +128,7 @@ export default {
     restart() {
       this.$store.dispatch("restart", { roomId: this.$route.params.id });
       this.$store.dispatch("statusSet", "Ready!");
-      this.restart_flag = false;
+      this.$store.dispatch("restartOption", false);
     },
     move(row, column) {
       if (!this.$store.state.tictactoeState.started) {
@@ -178,7 +181,7 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100vw;
-  height: 22.5vw;
+  height: 100%;
 }
 #readyNav {
   text-align: center;

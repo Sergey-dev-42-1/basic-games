@@ -45,9 +45,15 @@ const mutations = {
   },
   gameStart(state) {
     state.started = !state.started;
+    state.board = [
+      ["", "", ""],
+      ["", "", ""],
+      ["", "", ""],
+    ];
   },
   resetState(state, payload) {
     if (payload.reason !== "Draw") {
+      console.log(state.board + " before method");
       let cleared_board = win_board_helper(state.board, payload.win_comb);
       state.board = cleared_board;
     } else {
@@ -57,13 +63,19 @@ const mutations = {
         ["", "", ""],
       ];
     }
-    (state.turn = false), (state.enemy = false);
+    state.turn = false;
+    state.enemy = "";
     state.turnNum = 0;
     state.moveSign = "";
     state.enemyReady = false;
     state.started = false;
     state.status = payload.reason;
-    state.restart_flag = true;
+    state.restart_flag = false;
+  },
+  restartOption(state, payload) {
+    console.log("Restarting");
+    console.log(state.restart_flag);
+    state.restart_flag = payload;
   },
 };
 const actions = {
@@ -78,7 +90,6 @@ const actions = {
 
     //Условие ничьей, определяется по количеству ходов
     if (state.turnNum === 9 && !win_check_res) {
-      commit("resetState", { reason: `Draw` });
       console.log("draw cond");
       this._vm.$socket.client.emit("gameOver", {
         roomId: payload.roomId,
@@ -90,10 +101,6 @@ const actions = {
       await gameService.updateRating({
         username: rootState.user.username,
         value: 1,
-      });
-      commit("resetState", {
-        win_comb: win_check_res,
-        reason: `${rootState.user.username} won!`,
       });
       this._vm.$socket.client.emit("gameOver", {
         roomId: payload.roomId,
@@ -120,8 +127,17 @@ const actions = {
   enemyReady(state) {
     state.commit("enemyReady");
   },
+  resetState(state, payload) {
+    state.commit("resetState", payload);
+  },
   restart(state, payload) {
     this._vm.$socket.client.emit("restart", payload);
+  },
+  restartOption(state, payload) {
+    state.commit("restartOption", payload);
+  },
+  socket_restartOption(state, payload) {
+    state.commit("restartOption", payload);
   },
   socket_resetState(state, payload) {
     state.commit("resetState", payload);

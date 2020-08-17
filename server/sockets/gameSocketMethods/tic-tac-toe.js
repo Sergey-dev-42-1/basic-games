@@ -21,7 +21,7 @@ module.exports = function (io) {
         socket.join(data.roomId);
         console.log("connected: " + data.username);
         socket.emit("userConnectionSucceeded");
-        socket.emit("sendingAllRooms", await client.getRoomOwnerById());
+        io.emit("sendingAllRooms", await client.getRoomOwnerById());
         socket.to(data.roomId).emit("userEnteredRoom", {
           username: data.username,
           msg: `${data.username} connected to room`,
@@ -33,14 +33,15 @@ module.exports = function (io) {
     socket.on("userCreatedRoom", async (data) => {
       let response = await client.handleRoomCreation(data);
       if (response) {
-        socket.emit("sendingAllRooms", await client.getRoomOwnerById());
+        io.emit("sendingAllRooms", await client.getRoomOwnerById());
       } else {
         socket.emit("roomCreationFailed");
       }
     });
+
     socket.on("userLeavingRoom", async (data) => {
-      client.handleRoomLeaving(data);
-      tictactoeRedis.readinessReset(data.roomId);
+      await client.handleRoomLeaving(data);
+      await tictactoeRedis.readinessReset(data.roomId);
       console.log(`${data.username} left room ${data.roomId}`);
       io.emit("sendingAllRooms", await client.getRoomOwnerById());
       socket.to(data.roomId).emit("userLeftRoom", {
@@ -49,6 +50,7 @@ module.exports = function (io) {
       });
       socket.leave(data.roomId);
     });
+
     socket.on("playerReady", async (data) => {
       let gameStarted = await tictactoeRedis.handleEnemyReadiness(data);
 
@@ -79,9 +81,12 @@ module.exports = function (io) {
       console.log("Sending lose notification to room " + data.roomId);
       await tictactoeRedis.handleEnemyReadiness(data.roomId, true);
       console.log(data);
-      socket
-        .to(data.roomId)
-        .emit("resetState", { win_comb: data.win_comb, reason: data.reason });
+      io.in(data.roomId).emit("resetState", {
+        win_comb: data.win_comb,
+        reason: data.reason,
+      });
+      io.in(data.roomId).emit("restartOption", true);
+      io.emit("sendingAllUsers", await client.sendAllUsers());
     });
     //Как-то не DRY...
     socket.on("restart", async (data) => {
@@ -106,7 +111,6 @@ module.exports = function (io) {
     });
     socket.on("sendUsersInRoom", async (roomId) => {
       let people = await tictactoeRedis.handleSendPeopleInRoom(roomId);
-      console.log(people);
       socket.emit("sendingUsersInRoom", people);
     });
     next();
