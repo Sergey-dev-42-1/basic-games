@@ -2,7 +2,7 @@
   <span>
     <div id="btnAlign">
       <v-spacer></v-spacer>
-      <v-btn v-if="host" @click="leaveRoom('/rooms')">Destroy room</v-btn>
+      <v-btn v-if="host_flag" @click="leaveRoom('/rooms')">Destroy room</v-btn>
     </div>
     <board />
   </span>
@@ -17,18 +17,15 @@ export default {
   },
   data() {
     return {
-      host:
-        this.$store.state.user.username ===
-        this.$store.state.roomsState.allRooms[this.$route.params.id - 1].host,
+      host_flag: false,
     };
+  },
+  created() {
+    this.host();
   },
   async beforeRouteLeave(to, from, next) {
     //Если пользователь, пытающийся выйти, хост комнаты, комната удаляется
-    if (!this.$store.state.roomsState.allRooms[this.$route.params.id - 1]) {
-      next(true);
-      return;
-    }
-    if (this.host) {
+    if (this.host_flag) {
       let confirmation = window.confirm(
         "If you leave now, room will be destoryed"
       );
@@ -79,6 +76,26 @@ export default {
       console.log("Clearing state");
       if (destination !== "") {
         this.$router.push(destination);
+      }
+    },
+    host() {
+      let hosted_room = this.$store.state.roomsState.allRooms.filter(
+        (value) => {
+          console.log(value);
+          if (this.$store.state.user.username === value.host) {
+            return true;
+          }
+          return false;
+        }
+      );
+      console.log(hosted_room);
+      if (
+        hosted_room[0] !== undefined &&
+        hosted_room[0].roomId === this.$route.params.id
+      ) {
+        this.host_flag = true;
+      } else {
+        this.host_flag = false;
       }
     },
   },
