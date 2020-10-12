@@ -10,7 +10,7 @@ class DB{
         host: 'localhost',
         //TODO Исправить на действительные если выкладывать в продакшн
         user: 'develop',
-        password: 'yjdfz21f066565',
+        password: '',
         database: 'basic_games'
       });
   }
